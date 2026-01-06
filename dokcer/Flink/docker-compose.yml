@@ -1,0 +1,185 @@
+version: '3.8'
+
+services:
+  jobmanager:
+    image: flink:2.1.0-scala_2.12
+    container_name: flink-jobmanager
+    hostname: jobmanager
+    ports:
+      - "8081:8081"   # Flink Web UI
+      - "6123:6123"   # JobManager RPC
+      - "6124:6124"   # Blob Server
+      - "6125:6125"   # Queryable State
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        jobmanager.rpc.port: 6123
+        blob.server.port: 6124
+        query.server.port: 6125
+        rest.port: 8081
+        rest.address: 0.0.0.0
+        taskmanager.numberOfTaskSlots: 2
+        parallelism.default: 2
+    command: jobmanager
+    volumes:
+      - ./jars:/opt/flink/jars
+    networks:
+      - flink-network
+
+  taskmanager:
+    image: flink:2.1.0-scala_2.12
+    container_name: flink-taskmanager
+    depends_on:
+      - jobmanager
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        taskmanager.numberOfTaskSlots: 2
+        parallelism.default: 2
+    command: taskmanager
+    networks:
+      - flink-network
+
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - flink-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    networks:
+      - flink-network
+
+  redis_standalone:
+    image: redis:7.0.9-bullseye
+    container_name: redis_standalone
+    restart: always
+    volumes:
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+    command: [ "redis-server", "/usr/local/etc/redis/redis.conf" ]
+    ports:
+      - 6379:6379
+      - 16379:16379
+    networks:
+      - flink-network
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.16.2
+    container_name: elasticsearch_server
+    restart: always
+    environment:
+      - discovery.type=single-node
+      - discovery.zen.minimum_master_nodes=1
+      - ES_JAVA_OPTS=-Xms3g -Xmx3g
+      - ELASTIC_PASSWORD=123456
+    volumes:
+      - ./elasticsearch/data:/usr/share/elasticsearch/data
+      - ./config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+    ports:
+      - 9200:9200
+      - 9300:9300
+    networks:
+      - flink-network
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.16.2
+    container_name: kibana_server
+    ports:
+      - "5601:5601"
+    restart: always
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - SERVER_NAME=kibana
+    # 如需具体配置，可以创建./config/kibana.yml，并映射
+    volumes:
+      - ./config/kibana.yml:/usr/share/kibana/config/kibana.yml
+    depends_on:
+      - elasticsearch
+    networks:
+      - flink-network
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.16.2
+    container_name: logstash_server
+    restart: always
+    environment:
+      - LS_JAVA_OPTS=-Xmx256m -Xms256m
+    volumes:
+      #- ./config/logstash.conf:/etc/logstash/conf.d/logstash.conf
+      - ./config/logstash.conf:/com/logstash.conf
+    depends_on:
+      - elasticsearch
+    entrypoint:
+      - logstash
+      - -f
+      - /com/logstash.conf
+      #- /etc/logstash/conf.d/logstash.conf
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200m"
+        max-file: "3"
+    networks:
+      - flink-network
+
+  database:
+    image: mysql:5.7
+    platform: linux/amd64
+    container_name: mysql57
+    restart: always
+    environment:
+      MYSQL_ROOT_USER: 'root'
+      MYSQL_PASSWORD: 'tony0204'
+      MYSQL_ROOT_PASSWORD: 'tony0204'
+      SET_CONTAINER_TIMEZONE: 'true'
+      CONTAINER_TIMEZONE: 'Asia/Shanghai'
+    ports:
+      - '13306:3306'
+    expose:
+      - '3306'
+    volumes:
+      - './db:/var/lib/mysql'
+      - './config/my.cnf:/etc/my.cnf'
+      - './init:/docker-entrypoint-initdb.d'
+    command:
+      #id唯一
+      --server_id=100
+      --log-bin=mysql-bin
+      --sync_binlog=1
+      --binlog-ignore-db=mysql
+      --binlog_format=row
+      --expire_logs_days=7
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_general_ci
+      --explicit_defaults_for_timestamp=true
+      --lower_case_table_names=1
+      --sql_mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION
+    networks:
+      - flink-network
+
+networks:
+  flink-network:
+    driver: bridge

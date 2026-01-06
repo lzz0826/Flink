@@ -1,0 +1,80 @@
+
+hotRealTimeItemAnalysis:
+  testData: /Users/sai/IdeaProjects/Flink/HottItemsAnalysis/src/main/resources/data/UserBehavior.csv
+  flink:
+    allowedLateness: 30 # 窗口延遲關閉時間 秒
+    parallelism: 4 # 分區數
+  kafka:
+    host: localhost
+    port: 9092
+    topic: HotRealTimeItemAnalysis_topic
+    group: HotRealTimeItemAnalysis_group
+
+hotPageAnalysis:
+  testData: /Users/sai/IdeaProjects/Flink/HottItemsAnalysis/src/main/resources/data/apache.log
+  flink:
+    allowedLateness: 30 # 窗口延遲關閉時間 秒
+    parallelism: 4 # 分區數
+  kafka:
+    host: localhost
+    port: 9092
+    topic: HotPageAnalysis_topic
+    group: HotPageAnalysis_group
+
+appMarketAnalysis :
+  testData: /Users/sai/IdeaProjects/Flink/HottItemsAnalysis/src/main/resources/data/UserBehavior.csv
+  flink:
+    allowedLateness: 30 # 窗口延遲關閉時間 秒
+    parallelism: 4 # 分區數
+  kafka:
+    host: localhost
+    port: 9092
+    topic: AppMarketAnalysis_topic
+    group: AppMarketAnalysis_group
+
+pbvUvAnalysisAnalysis :
+  testData: /Users/sai/IdeaProjects/Flink/HottItemsAnalysis/src/main/resources/data/UserBehavior.csv
+  flink:
+    allowedLateness: 30 # 窗口延遲關閉時間 秒
+    parallelism: 4 # 分區數
+  kafka:
+    host: localhost
+    port: 9092
+    topic: PvUvAnalysisAnalysis_topic
+    group: PvUvAnalysisAnalysis_group
+
+adStatisticsByProvinceAnalysis:
+  testData: /Users/sai/IdeaProjects/Flink/HottItemsAnalysis/src/main/resources/data/AdClickLog.csv
+  flink:
+    allowedLateness: 30 # 窗口延遲關閉時間 秒
+    parallelism: 4 # 分區數
+  kafka:
+    host: localhost
+    port: 9092
+    topic: AdStatisticsByProvinceAnalysis_topic
+    group: AdStatisticsByProvinceAnalysis_group
+
+loginFailAlarmAnalysis:
+  testData: /Users/sai/IdeaProjects/Flink/HottItemsAnalysis/src/main/resources/data/LoginLog.csv
+  flink:
+    allowedLateness: 30 # 窗口延遲關閉時間 秒
+    parallelism: 4 # 分區數
+  kafka:
+    host: localhost
+    port: 9092
+    topic: LoginFailAlarmAnalysis_topic
+    group: LoginFailAlarmAnalysis_group
+
+orderResultAlarmAnalysis:
+  testData: /Users/sai/IdeaProjects/Flink/HottItemsAnalysis/src/main/resources/data/OrderLog.csv
+  testData2: /Users/sai/IdeaProjects/Flink/HottItemsAnalysis/src/main/resources/data/ReceiptLog.csv
+  flink:
+    allowedLateness: 30 # 窗口延遲關閉時間 秒
+    parallelism: 4 # 分區數
+  kafka:
+    host: localhost
+    port: 9092
+    topic: OrderLogAlarmAnalysis_topic
+    group: OrderLogAlarmAnalysis_group
+
+
