@@ -30,7 +30,8 @@ app市場推廣統計<br>
 • 風險控制<br>
 下訂單、支付、登錄<br>
 刷單監控、訂單失效監控、惡意登錄（短時間內頻繁登錄失敗）監控
-
+<br>
+<br>
 # ---------------- Flink  窗口函數  ---------------
 • 推薦的設計模式：分層處理 (Separation of Concerns)<br>
 • 將「時間開窗」與「業務邏輯」分開處理，可以極大地簡化開發、測試和維護工作。
@@ -72,8 +73,8 @@ ROW_NUMBER() OVER (PARTITION BY ... ORDER BY ...)
 | PARTITION BY | 定義分組鍵 | 類似 GROUP BY 將數據切分成獨立的集合。排名在每個集合內獨立計算。 |
 | ORDER BY | 定義排序規則 | 確定在每個分組內，序號分配的順序。 |
 | ROW_NUMBER() | 實際的計數器 | 為排序後的行賦予連續且不重複的整數序號 (1, 2, 3...)。 |
-
-
+<br>
+<br>
 # ----- DataStream API (Stream API) Table/SQL API ------
 ### 代碼路徑: Flink/HottItemsAnalysis/src/main/java/org/analysis/dataStreamAPI
 ### DataStream API 獨有功能列表:
@@ -98,7 +99,8 @@ OutputTag 和 Context.output() 方法。
 
 • 自定義數據源/接收器<br>
 實現 SourceFunction 或 SinkFunction 介面。
-
+<br>
+<br>
 # ------- CEP 從 一連串事件 中，找出 符合某種行為模式（Pattern） 的「複雜事件」。 ----------
 ### 代碼路徑: Flink/HottItemsAnalysis/src/main/java/org/analysis/CEP
 #### 輸入 -> 規則 -> 輸出
